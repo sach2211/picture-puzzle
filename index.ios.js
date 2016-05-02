@@ -4,6 +4,17 @@
  * @flow
  */
 
+/*************************************************
+*        IMPLEMENTING 8-PUZZLE IN REACT NATIVE   *
+*                                                *   
+***************************************************/
+
+/*
+    It is not possible to solve an instance of 8 puzzle if number of inversions is odd in the input state. 
+    In the examples given in above figure, the first example has 10 inversions, therefore solvable. 
+    The second example has 11 inversions, therefore unsolvable.
+*/
+
 import React, {
   AppRegistry,
   Component,
@@ -15,27 +26,39 @@ import React, {
   ProgressViewIOS
 } from 'react-native';
 
-
+// LENGTH OF THIS IS EQUAL TO THE GRID SIZE
 var arr = [0, 1, 2] 
+
 class AwesomeProject extends Component {
   constructor(props){
     super(props)
     this.state = {
-        state: 'view',
-        empty : 0,
-        emptyRow: 0,
+        state: 'view', // VIEW is when picture is visible, PLAY when game starts
+        emptyRow: 0,   // the empty element coordinates
         emptyCol: 0,
         urls:[
           ['', require('./images/i01.jpeg'), require('./images/i02.jpeg')],
           [require('./images/i10.jpeg'), require('./images/i11.jpeg'), require('./images/i12.jpeg')],
           [require('./images/i20.jpeg'), require('./images/i21.jpeg'), require('./images/i22.jpeg')],
         ],
-        progress: .1,
+        correct_answer: [
+          ['', require('./images/i01.jpeg'), require('./images/i02.jpeg')],
+          [require('./images/i10.jpeg'), require('./images/i11.jpeg'), require('./images/i12.jpeg')],
+          [require('./images/i20.jpeg'), require('./images/i21.jpeg'), require('./images/i22.jpeg')],
+        ],
+        progress: .05,
     }
   }
 
-  randomize() {
+  /*Randomize the blocks in the begining of the game*/
+  randomize() {  
     let urls = this.state.urls
+    var mapping =[ 
+        [0,1,2],
+        [3,4,5],
+        [6,7,8],
+    ]
+    
     for (let i = 0; i < urls.length; i++) {
       for (let j = 1; j < urls[i].length; j++) {
         let a = Math.random(), 
@@ -44,15 +67,48 @@ class AwesomeProject extends Component {
         b = (Math.floor(b * 10)) % 3
         if (a ===  0 && b === 0)
           continue
+        
         let temp = urls[i][j]
         urls[i][j] = urls[a][b]
         urls[a][b] = temp
-      }
+        
+        temp =mapping[i][j]
+        mapping[i][j] =mapping[a][b]
+        mapping[a][b] = temp
+      
+        }
     }
+    
+    if (this.checkInversions(mapping) %2 !== 0) {
+        // for 3X3 puzzle, in case of odd number of inversions , no solution exists
+        // Hence reducing one inversion
+        
+        
+    }
+    
     this.setState({urls : urls})
+  }
+  
+  checkInversions(array) {
+      let temp = [], inversions = 0;
+      for (var i = 0; i < array.length; i++){
+          for (var j = 0; j < array[i].length; j++) {
+              temp.push(array[i][j])
+          }
+      }
+      
+      for (var i = 0; i < temp.length; i++) {
+          for (var j = i+1; j < temp.length; j++) {
+              if (temp[i] > temp[j])
+                inversions++
+          }
+      }
+      console.log("Number of inversions are ", inversions)
+      return inversions
   }
 
   componentDidMount() {
+    // Mount the progress bar and keep on increasing it   
     let progress = this.state.progress
     setInterval(function(){
       let progress = this.state.progress
@@ -60,8 +116,10 @@ class AwesomeProject extends Component {
       this.setState({progress : progress})
     }.bind(this), 100)
 
+    // randomize the picture gallery
     this.randomize()
 
+    // remove the picture and enable playing after 3 seconds
     setTimeout(function(){
       this.setState({state : 'play'})
     }.bind(this), 3000)
@@ -75,14 +133,26 @@ class AwesomeProject extends Component {
     let right = { x : x , y : y + 1}
 
     if (Math.abs(x - this.state.emptyRow) + Math.abs(y - this.state.emptyCol) === 1) {
-     // alert('Move')
-
       // swap the urls of those two
       let urls = this.state.urls
       let temp = urls[x][y]
       urls[x][y] = urls[this.state.emptyRow][this.state.emptyCol]
       urls[this.state.emptyRow][this.state.emptyCol] = temp
 
+      
+      var flag = 0;
+      for (var i = 0; i < urls.length; i++) {
+          for (var j = 0; j < urls[i].length; j++) {
+              if ( !(urls[i][j] === this.state.correct_answer[i][j]) ) {
+                  flag = 1;
+                  break;
+              }
+              
+          }
+      }
+      if (flag === 0) {
+          alert("Correct Answer !")
+      }
       this.setState({urls : urls, emptyRow : x, emptyCol : y})
 
     }
