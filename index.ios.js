@@ -13,6 +13,8 @@
     It is not possible to solve an instance of 8 puzzle if number of inversions is odd in the input state. 
     In the examples given in above figure, the first example has 10 inversions, therefore solvable. 
     The second example has 11 inversions, therefore unsolvable.
+    
+    Go through for more details : http://www.sitepoint.com/randomizing-sliding-puzzle-tiles/
 */
 
 import React, {
@@ -28,7 +30,7 @@ import React, {
 
 // LENGTH OF THIS IS EQUAL TO THE GRID SIZE
 var arr = [0, 1, 2] 
-
+var keys = 0;
 class AwesomeProject extends Component {
   constructor(props){
     super(props)
@@ -82,10 +84,18 @@ class AwesomeProject extends Component {
     if (this.checkInversions(mapping) %2 !== 0) {
         // for 3X3 puzzle, in case of odd number of inversions , no solution exists
         // Hence reducing one inversion
+
+        // swap the last two tiles
+        temp =mapping[2][1]
+        mapping[2][1] =mapping[2][2]
+        mapping[2][2] = temp
         
+        temp =urls[2][1]
+        urls[2][1] =urls[2][2]
+        urls[2][2] = temp
         
     }
-    
+    console.log("The inversions are   : ", this.checkInversions(mapping))
     this.setState({urls : urls})
   }
   
@@ -172,17 +182,18 @@ class AwesomeProject extends Component {
           progressViewStyle = 'bar'
           progressTintColor={this.state.progress > .25 ? (this.state.progress > .5 ? (this.state.progress > .75 ? '#D9534F' : '#F0AD4E') : '#5CB85C' ) : '#5BC0DE'}
         />
-
+        
       {this.state.state === 'play' 
         ?(
         arr.map(function(row, index) {
         return(
-          <View style = {{flexDirection: 'row'}}>
+          <View style = {{flexDirection: 'row'}} key = {index}>
           {
-            arr.map(function(col, index){
+            arr.map(function(col, index){++keys
               return(
-                <TouchableOpacity onPress={this.clickMe.bind(this, row, col)}>
-                  <Image
+                <TouchableOpacity key = {(index + 5)*1000} 
+                    onPress={this.clickMe.bind(this, row, col)}  >
+                  <Image 
                     style={styles.image}
                     source={this.state.emptyRow === row && this.state.emptyCol === col ? null : this.state.urls[row][col] }
                   />
