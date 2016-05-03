@@ -44,9 +44,9 @@ class AwesomeProject extends Component {
     this.panResponder = new Array(new Array(3), new Array(3), new Array(3))
     for (var i = 0; i < 3; i++) {
       for (var j = 0; j < 3; j++){
+        var a = i, b = j;  
         this.panResponder[i][j] = PanResponder.create({    //Step 2
           // Initialize the pan responder
-          onStartShouldSetPanResponder : () => true,
           onStartShouldSetPanResponder: (evt, gestureState) => true,
           onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
           onMoveShouldSetPanResponder: (evt, gestureState) => true,
@@ -57,13 +57,14 @@ class AwesomeProject extends Component {
           // what is happening!
 
           // gestureState.{x,y}0 will be set to zero now
+
           this.setState({text : 'Registered touch at coordinates ' + gestureState.x0 + ' & ' + gestureState.y0})
           /* These are the coordinates of where user has touched */
           },
 
           onPanResponderMove: Animated.event([null,{ //Step 3
-              dx : this.state.pan[i][j].x,
-              dy : this.state.pan[i][j].y
+              dx : this.state.pan[a][b].x,
+              dy : this.state.pan[a][b].y,
           }]),
           // The most recent move distance is gestureState.move{X,Y}
 
@@ -72,16 +73,27 @@ class AwesomeProject extends Component {
           //this.setState({text : 'Current position is  ' + gestureState.dx + ' & ' + gestureState.dy})
           /* These are the coordinates relative to the point where touch occured */
           //},
-
-          onPanResponderRelease: (evt, gestureState) => {
-          // The user has released all touches while this view is the
-          // responder. This typically means a gesture has succeeded
-          },
-        });    
-      }
-    }
-    
+         
+          onPanResponderRelease: ((evt, gestureState)=> {
+            var t1 = i, t2 = j;
+            
+            console.log('t1 and t2 are ', t1, t2)
+            if (evt && gestureState) {
+                Animated.spring(
+                    this.state.pan[0][0],
+                    {toValue:{x:0,y:0}}
+                ).start();
+            } else {
+                console.log('Hello Worls, empty')
+            }
+        })(null, null)
+    });
+    }}
   }
+  componentWillUnmount() {
+    this.state.pan.x.removeAllListeners();  
+    this.state.pan.y.removeAllListeners();
+  }  
 
   randomize() {
     let urls = this.state.urls
@@ -125,8 +137,8 @@ class AwesomeProject extends Component {
 
     if (Math.abs(x - this.state.emptyRow) + Math.abs(y - this.state.emptyCol) === 1) {
      // alert('Move')
-
       // swap the urls of those two
+      
       let urls = this.state.urls
       let temp = urls[x][y]
       urls[x][y] = urls[this.state.emptyRow][this.state.emptyCol]
@@ -144,7 +156,7 @@ class AwesomeProject extends Component {
     return (
 
       <View style={styles.container}>
-        <Text>3 X 3 Grid : {this.state.emptyRow} {this.state.pan[0].x ? this.state.pan[0].x._value : null}</Text>
+        <Text>3 X 3 Grid : {this.state.text} {this.state.pan[0].x ? this.state.pan[0].x._value : null}</Text>
         <ProgressViewIOS
           style={{width : 300, height : 50}}
           progress={this.state.progress}
