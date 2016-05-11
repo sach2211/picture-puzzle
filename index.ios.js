@@ -18,8 +18,16 @@ import React, {
   PanResponder
 } from 'react-native';
 
+/*An Array of size N, where grid is of size N X N*/
+var arr = [0, 1, 2]
 
-var arr = [0, 1, 2] 
+/* Constants for Layout and Positioning of Images*/
+var WIDTH = 120
+var HEIGHT = 60
+var TOP = 10
+var LEFT = 30
+
+/*React Class which contains code*/
 class AwesomeProject extends Component {
   constructor(props){
     super(props)
@@ -36,70 +44,56 @@ class AwesomeProject extends Component {
         progress: .1,
         text: 'None',
         pan : [
-          [new Animated.ValueXY(), new Animated.ValueXY(), new Animated.ValueXY()], 
-          [new Animated.ValueXY(), new Animated.ValueXY(), new Animated.ValueXY()], 
+          [new Animated.ValueXY(), new Animated.ValueXY(), new Animated.ValueXY()],
+          [new Animated.ValueXY(), new Animated.ValueXY(), new Animated.ValueXY()],
           [new Animated.ValueXY(), new Animated.ValueXY(), new Animated.ValueXY()]
               ]
     }
     this.panResponder = new Array(new Array(3), new Array(3), new Array(3))
     for (var i = 0; i < 3; i++) {
       for (var j = 0; j < 3; j++){
-        var a = i, b = j;  
+        var a = i, b = j;
         this.panResponder[i][j] = PanResponder.create({    //Step 2
           // Initialize the pan responder
           onStartShouldSetPanResponder: (evt, gestureState) => true,
           onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
           onMoveShouldSetPanResponder: (evt, gestureState) => true,
           onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
-          
+
           onPanResponderGrant: (evt, gestureState) => {
-          // The guesture has started. Show visual feedback so the user knows
-          // what is happening!
-
-          // gestureState.{x,y}0 will be set to zero now
-
+          // The guesture has started. Show visual feedback so the user knows what is happening!
+          // gestureState.{x,y}0 will be set to zero now, These are the coordinates of where user has touched
+          console.log("i,j are ", i, j)
+          this.refs['img' + i + j].setNativeProps({
+            opacity : .5
+          })
           this.setState({text : 'Registered touch at coordinates ' + gestureState.x0 + ' & ' + gestureState.y0})
-          /* These are the coordinates of where user has touched */
+
           },
 
-          onPanResponderMove: Animated.event([null,{ //Step 3
+          /* These are the coordinates relative to the point where touch occured */
+          //this.setState({text : 'Current position is  ' + gestureState.dx + ' & ' + gestureState.dy})
+          onPanResponderMove: Animated.event([null,{
               dx : this.state.pan[a][b].x,
               dy : this.state.pan[a][b].y,
           }]),
-          // The most recent move distance is gestureState.move{X,Y}
 
-          // The accumulated gesture distance since becoming responder is
-          // gestureState.d{x,y}
-          //this.setState({text : 'Current position is  ' + gestureState.dx + ' & ' + gestureState.dy})
-          /* These are the coordinates relative to the point where touch occured */
-          //},
-         
-          onPanResponderRelease: ((evt, gestureState)=> {
-            var t1 = i, t2 = j;
-            
-            console.log('t1 and t2 are ', t1, t2)
-            if (evt && gestureState) {
-                Animated.spring(
-                    this.state.pan[0][0],
-                    {toValue:{x:0,y:0}}
-                ).start();
-            } else {
-                console.log('Hello Worls, empty')
-            }
-        })(null, null)
+          onPanResponderRelease: (evt, gestureState)=> {
+
+        }
     });
     }}
   }
   componentWillUnmount() {
-    this.state.pan.x.removeAllListeners();  
+    this.state.pan.x.removeAllListeners();
     this.state.pan.y.removeAllListeners();
-  }  
+  }
 
   randomize() {
     let urls = this.state.urls
     for (let i = 0; i < urls.length; i++) {
       for (let j = 1; j < urls[i].length; j++) {
-        let a = Math.random(), 
+        let a = Math.random(),
             b = Math.random()
         a = (Math.floor(a * 10)) % 3
         b = (Math.floor(b * 10)) % 3
@@ -126,19 +120,14 @@ class AwesomeProject extends Component {
     setTimeout(function(){
       this.setState({state : 'play'})
     }.bind(this), 3000)
-  
+
   }
 
   clickMe(x, y) {
-    let up    = { x : x -1 , y : y }
-    let down  = { x : x +1 , y : y -1}
-    let left  = { x : x , y : y -1}
-    let right = { x : x , y : y + 1}
 
     if (Math.abs(x - this.state.emptyRow) + Math.abs(y - this.state.emptyCol) === 1) {
-     // alert('Move')
+
       // swap the urls of those two
-      
       let urls = this.state.urls
       let temp = urls[x][y]
       urls[x][y] = urls[this.state.emptyRow][this.state.emptyCol]
@@ -164,7 +153,7 @@ class AwesomeProject extends Component {
           progressTintColor={this.state.progress > .25 ? (this.state.progress > .5 ? (this.state.progress > .75 ? '#D9534F' : '#F0AD4E') : '#5CB85C' ) : '#5BC0DE'}
         />
 
-      {this.state.state === 'play' 
+      {this.state.state === 'play'
         ?(
         arr.map(function(row, index) {
         return(
@@ -172,13 +161,14 @@ class AwesomeProject extends Component {
           {
             arr.map(function(col, index){
               return(
-                
+
                   <Animated.Image
-                    {...this.panResponder[row][col].panHandlers} 
-                    style={[this.state.pan[row][col].getLayout(), styles.image]}
+                    {...this.panResponder[row][col].panHandlers}
+                    ref = {'img' + row + col}
+                    style={{position: 'absolute', top : row === 0 ? TOP : row === 1 ? TOP + HEIGHT : TOP + 2*HEIGHT , left : col === 0 ? LEFT : col === 1 ? LEFT + WIDTH: LEFT + 2*WIDTH, borderWidth : .4, opacity:1, height:HEIGHT, width:WIDTH,}}
                     source={this.state.emptyRow === row && this.state.emptyCol === col ? null : this.state.urls[row][col] }
                   />
-          
+
               )
             }, this)
           }
@@ -195,7 +185,7 @@ class AwesomeProject extends Component {
         )
       }
       </View>
-      
+
     );
   }
 }
@@ -203,8 +193,8 @@ class AwesomeProject extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop : 45,
-    alignItems: 'center',
+    marginTop : 35,
+//    alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
   welcome: {
@@ -223,12 +213,6 @@ const styles = StyleSheet.create({
     backgroundColor : 'blue',
     marginBottom: 7,
     height : 40
-  },
-  image :{
-    borderWidth : .4,
-    opacity:1,
-    height:60,
-    width:120,
   },
   mainImage: {
     borderWidth : .4,
